@@ -19,6 +19,32 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* HelloKitty装饰元素 */
+        body::before {
+            content: '🎀';
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '🎀';
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            animation: float 3s ease-in-out infinite reverse;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(10deg); }
         }
 
         .container {
@@ -142,6 +168,21 @@
             animation: bounce 2s infinite;
         }
 
+        .kitty {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-size: 24px;
+            animation: kittyBounce 4s ease-in-out infinite;
+        }
+
+        @keyframes kittyBounce {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            25% { transform: translateY(-5px) scale(1.1); }
+            50% { transform: translateY(-10px) scale(1.2); }
+            75% { transform: translateY(-5px) scale(1.1); }
+        }
+
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
             40% { transform: translateY(-10px); }
@@ -182,10 +223,11 @@
 <body>
     <div class="container">
         <div class="hearts">💕</div>
+        <div class="kitty">🐱</div>
         <div class="paw">🐾</div>
         
-        <div class="question">
-            周佳佳是不是陆祥瑞的小狗？
+        <div class="question" id="question">
+            周佳佳是不是陆祥瑞的小狗？ 🐕
         </div>
         
         <div class="options">
@@ -201,10 +243,13 @@
     </div>
 
     <script>
+        let noCount = 0; // 记录选择"不是"的次数
+        
         function showResult(choice) {
             const resultDiv = document.getElementById('result');
             const yesBtn = document.querySelector('.yes-btn');
             const noBtn = document.querySelector('.no-btn');
+            const questionDiv = document.getElementById('question');
             
             if (choice === 'yes') {
                 // 选择"是"的情况
@@ -223,56 +268,53 @@
                 }, 500);
                 
             } else {
-                // 选择"不是"的情况 - 开始按钮大小变化动画
-                resultDiv.innerHTML = '你选择了：不是 ❌<br><small>真的不是吗？再想想看~</small>';
-                resultDiv.className = 'result show no';
+                // 选择"不是"的情况
+                noCount++;
                 
-                // 开始按钮大小变化动画
-                startButtonAnimation();
-            }
-        }
-        
-        function startButtonAnimation() {
-            const yesBtn = document.querySelector('.yes-btn');
-            const noBtn = document.querySelector('.no-btn');
-            const resultDiv = document.getElementById('result');
-            
-            let noBtnSize = 100; // 初始大小百分比
-            let yesBtnSize = 100; // 初始大小百分比
-            let animationSpeed = 2; // 变化速度
-            
-            const animate = () => {
-                // "不是"按钮变小
-                noBtnSize = Math.max(20, noBtnSize - animationSpeed);
-                noBtn.style.transform = `scale(${noBtnSize / 100})`;
-                noBtn.style.opacity = noBtnSize / 100;
-                
-                // "是"按钮变大
-                yesBtnSize = Math.min(200, yesBtnSize + animationSpeed);
-                yesBtn.style.transform = `scale(${yesBtnSize / 100})`;
-                yesBtn.style.fontSize = `${18 * (yesBtnSize / 100)}px`;
-                
-                // 如果"不是"按钮还没有完全消失，继续动画
-                if (noBtnSize > 20) {
-                    requestAnimationFrame(animate);
-                } else {
-                    // 动画结束，显示最终结果
+                if (noCount === 1) {
+                    // 第一次选择"不是"
+                    questionDiv.innerHTML = '叫爸爸就给你选 🎀';
+                    resultDiv.innerHTML = '你选择了：不是 ❌<br><small>哼！不叫爸爸就不让你选！</small>';
+                    resultDiv.className = 'result show no';
+                    
+                    // "是"按钮变大
+                    yesBtn.style.transform = 'scale(1.3)';
+                    yesBtn.style.fontSize = '23px';
+                    
+                } else if (noCount === 2) {
+                    // 第二次选择"不是"
+                    questionDiv.innerHTML = '怎么还敢选不是 😤';
+                    resultDiv.innerHTML = '你选择了：不是 ❌<br><small>胆子不小啊！</small>';
+                    resultDiv.className = 'result show no';
+                    
+                    // "是"按钮继续变大
+                    yesBtn.style.transform = 'scale(1.6)';
+                    yesBtn.style.fontSize = '28px';
+                    
+                } else if (noCount === 3) {
+                    // 第三次选择"不是"
+                    questionDiv.innerHTML = '由不得你选 😈';
+                    resultDiv.className = 'result show no';
+                    
+                    // "是"按钮变为最大，"不是"按钮消失
+                    yesBtn.style.transform = 'scale(2.0)';
+                    yesBtn.style.fontSize = '36px';
+                    noBtn.style.display = 'none';
+                    
+                    // 强制选择"是"
                     setTimeout(() => {
-                        resultDiv.innerHTML = '你最终还是选择了：是 🐕<br><small>周佳佳确实是陆祥瑞的小狗！</small>';
-                        resultDiv.className = 'result show yes';
-                        
-                        // 禁用所有按钮
-                        yesBtn.style.pointerEvents = 'none';
-                        noBtn.style.pointerEvents = 'none';
-                        
-                        // 改变背景
-                        document.body.style.background = 'linear-gradient(135deg, #ff9a9e 0%, #ffb6c1 50%, #ffc0cb 100%)';
-                    }, 1000);
+                        showResult('yes');
+                    }, 2000);
+                    
+                    return;
                 }
-            };
-            
-            // 开始动画
-            animate();
+                
+                // 重置按钮状态，允许继续选择
+                setTimeout(() => {
+                    resultDiv.style.display = 'none';
+                    resultDiv.className = 'result';
+                }, 2000);
+            }
         }
     </script>
 </body>
